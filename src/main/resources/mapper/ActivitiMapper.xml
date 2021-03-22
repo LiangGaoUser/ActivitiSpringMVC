@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lianggao.dao.ActivitiMapper">
+<!--  <resultMap id="BaseResultMap" type="com.lianggao.bean.Application">
+    <result column="TASK_ID_" jdbcType="VARCHAR" property="TASK_ID_" />
+    <result column="PROC_INST_ID_" jdbcType="VARCHAR" property="PROC_INST_ID_" />
+  </resultMap>-->
+  <update id="updateCommentTime" parameterType="java.lang.String" >
+    update act_hi_comment
+    set TIME_ = #{TIME_}
+    where  TASK_ID_ = #{TASK_ID_} and PROC_INST_ID_ = #{PROC_INST_ID_}
+  </update>
+
+  <select id="selectDeleteReason" resultType="java.lang.String" parameterType="java.lang.String" >
+    select DELETE_REASON_
+    from act_hi_procinst
+    where ID_ = #{ID_}
+  </select>
+</mapper>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+    <properties resource="dbConfig.properties"/>
+    <context id="testTables" targetRuntime="MyBatis3">
+        <jdbcConnection connectionURL="${jdbc.url}" driverClass="${jdbc.driver}" password="${jdbc.password}"
+                        userId="${jdbc.username}"/>
+        <javaModelGenerator targetPackage="com.lianggao.bean" targetProject="src\main\java"/>
+        <sqlMapGenerator targetPackage="com.lianggao.dao" targetProject="src\main\java"/>
+        <javaClientGenerator targetPackage="com.lianggao.dao" targetProject="src\main\java"
+                             type="XMLMAPPER"/>
+
+        <table schema="" tableName="userinfo" domainObjectName="UserInfo"
+               enableCountByExample="false" enableDeleteByExample="false" enableSelectByExample="false"
+               enableUpdateByExample="false" selectByExampleQueryId="false">
+            <!--是否使用实际列名,默认为false-->
+            <property name="useActualColumnNames" value="true" />
+        </table>
+
+        <table schema="" tableName="application" domainObjectName="Application"
+               enableCountByExample="false" enableDeleteByExample="false" enableSelectByExample="false"
+               enableUpdateByExample="false" selectByExampleQueryId="false">
+            <!--是否使用实际列名,默认为false-->
+            <property name="useActualColumnNames" value="true" />
+        </table>
+    </context>
+</generatorConfiguration>

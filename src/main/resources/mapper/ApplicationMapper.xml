@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lianggao.dao.ApplicationMapper">
+  <resultMap id="BaseResultMap" type="com.lianggao.bean.Application">
+    <result column="DangerTaskId" jdbcType="INTEGER" property="dangerTaskId" />
+    <result column="DangerTaskName" jdbcType="VARCHAR" property="dangerTaskName" />
+    <result column="Applicant" jdbcType="INTEGER" property="applicant" />
+    <result column="StartTime" jdbcType="DATE" property="startTime" />
+    <result column="EndTime" jdbcType="VARCHAR" property="endTime" />
+    <result column="FileName" jdbcType="VARCHAR" property="fileName" />
+    <result column="State" jdbcType="INTEGER" property="state" />
+  </resultMap>
+  <insert id="insert" useGeneratedKeys="true" keyProperty="dangerTaskId" parameterType="com.lianggao.bean.Application" >
+    insert into application (DangerTaskName,Applicant, StartTime, EndTime, FileName, State)
+    values (#{dangerTaskName,jdbcType=VARCHAR},#{applicant,jdbcType=INTEGER},#{startTime,jdbcType=VARCHAR},
+         #{endTime,jdbcType=VARCHAR},#{fileName,jdbcType=VARCHAR},#{state,jdbcType=INTEGER})
+  </insert>
+  <select id="selectByBusinessKey" resultMap="BaseResultMap" parameterType="INTEGER" >
+    select *
+    from application
+    where DangerTaskId = #{dangerTaskId}
+  </select>
+  <select id="getUserApplication" resultMap="BaseResultMap" parameterType="INTEGER" >
+    select *
+    from application
+    where Applicant = #{applicant}
+  </select>
+  <update id="setApplicationState" parameterType="com.lianggao.bean.Application" >
+    update application
+    set State = #{state}
+    where DangerTaskId = #{dangerTaskId}
+  </update>
+</mapper>
