@@ -40,7 +40,8 @@
             <td width="80px"><a href="/ActivitiSpringMVC_war/flow/submitUI.jsp">提交UI</a></td>
             <td width="300px"><a href="/flow/submitUI.jsp">申请列表</a></td>
             <td width="300px"><a href="/ActivitiSpringMVC_war/DangerTaskApplyMan/GetAllInstances.do">查询所有申请</a></td>
-            <td width="300px"><a href="../flow/submitUI.jsp">申请列表2</a></td>
+            <td width="300px"><a href="/ActivitiSpringMVC_war/AssociateManagement/DangerTaskApplyMan/dangerTaskApply.jsp">危险作业申请模块</a></td>
+            <td width="300px"><a href="/ActivitiSpringMVC_war/AssociateManagement/TaskApproveMan/dangerTaskApproval.jsp">危险作业批准模块</a></td>
         </tr>
         <tr align=center valign=middle id=TableTitle2>
 

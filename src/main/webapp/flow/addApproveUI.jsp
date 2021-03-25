@@ -9,7 +9,7 @@
 <BODY LEFTMARGIN=0 TOPMARGIN=0 MARGINWIDTH=0 MARGINHEIGHT=0 CLASS=PageBody >
 <form action="/ActivitiSpringMVC_war/DangerTaskApplyMan/AddApproval.do" method="post">
     <tr>
-        实例ID：<input type="text" name="InstanceId">
+        实例ID：<input type="text" name="InstanceId", value="${InstanceId}">
     </tr>
     <tr>
         添加的申请人：<input type="text" name="approvelist">

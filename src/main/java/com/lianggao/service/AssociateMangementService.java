@@ -4,7 +4,10 @@ import com.lianggao.bean.Application;
 import com.lianggao.bean.ApplicationInstance;
 import com.lianggao.bean.UserInfo;
 
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface AssociateMangementService {
     /**
@@ -74,4 +77,29 @@ public interface AssociateMangementService {
      * 添加审批人
      */
     public void addInstanceNode(String InstanceId, List<UserInfo> userInfoList);
+
+
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    //获取危险作业类型
+    public Map<String,Object> getCategory();
+    public Map[] getAlltaskListInfo(String conditions, int pageindex, String username, String UserInstitution) throws SQLException;
+    public Map[] getAlltaskList(String conditions, String username, String UserInstitution) throws SQLException;
+    public int insertApplicationTask(String ApplicantNum, String TaskInstitution, String ApplyingTime, String StartTime, String EndTime, String DangerTaskName, String Category, String Archived, String uploadfilename, String ApproverList,String DangerTaskLevel,String DangerTaskNum);
+    public Map[] getTaskInfo(String taskID);
+    public List<Map<String,Object>> getTaskList(String tasklist) throws Exception;
+    public List<Map<String,Object>> getApplicant(String tasklist) throws Exception;
+    public int Edit_submitApplicantTask(String ApplicantNum, String TaskInstitution, String ApplyingTime, String StartTime, String EndTime, String DangerTaskName, String Category, String Archived, String uploadfilename, String State, String ApproverList, String TaskID,String DangerTaskLevel,String DangerTaskNum);
+    public int updateApplicationTask(String ApplicantNum, String TaskInstitution, String ApplyingTime, String StartTime, String EndTime, String DangerTaskName, String Category, String Archived, String uploadfilename, String State, String ApproverList, String TaskID,String DangerTaskLevel,String DangerTaskNum) throws Exception;
+    public int insertApplicationTask2(String ApplicantNum, String TaskInstitution, String ApplyingTime, String StartTime, String EndTime, String DangerTaskName, String Category, String Archived, String uploadfilename, String ApproverList,String DangerTaskLevel,String DangerTaskNum);
+    public int Add_submitApplicantTask(String ApplicantNum, String ApproverList, String TaskID);
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    public Map[] getAllApprovalListInfo(String conditions, int pageindex, String username, String UserInstitution) throws SQLException;
+    public Map[] getAllApprovalList(String conditions,String username) throws SQLException;
+    public List<Map<String, Object>> getApplyInfo(String ApprovalID) throws Exception ;
+    public Map[] getSubmitter(String ApprovalID);
+    public int Approve(String ApprovalID, String TaskID, String Approver, String ApproverList, String ApprovalResult,String ApproveTime,String ApprovalFinished, String ApproveSuggestion,String ApproveSignature,String flag);
+    public Map[] getrelayPeopleList(String InstitutionNum, String usernum)throws Exception;
+    public int replayApplication(String[] ApprovalIDList, String username, String relayPeople, String ApproveSuggestion);
+    public int returnApplication(String ApprovalID, String SubmitterID, String Applicant, String ApproveSuggestion, String Finished);
 }

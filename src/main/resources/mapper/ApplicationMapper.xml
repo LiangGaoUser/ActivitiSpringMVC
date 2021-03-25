@@ -10,11 +10,65 @@
     <result column="FileName" jdbcType="VARCHAR" property="fileName" />
     <result column="State" jdbcType="INTEGER" property="state" />
   </resultMap>
-  <insert id="insert" useGeneratedKeys="true" keyProperty="dangerTaskId" parameterType="com.lianggao.bean.Application" >
+  <!--mysql插入语句-->
+  <!--<insert id="insert" useGeneratedKeys="true" keyProperty="dangerTaskId" parameterType="com.lianggao.bean.Application" >
     insert into application (DangerTaskName,Applicant, StartTime, EndTime, FileName, State)
     values (#{dangerTaskName,jdbcType=VARCHAR},#{applicant,jdbcType=INTEGER},#{startTime,jdbcType=VARCHAR},
          #{endTime,jdbcType=VARCHAR},#{fileName,jdbcType=VARCHAR},#{state,jdbcType=INTEGER})
-  </insert>
+  </insert>-->
+  <select id="insert"  parameterType="com.lianggao.bean.Application" resultType="java.lang.Integer">
+    insert into application
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="dangerTaskId != null">
+        DangerTaskId,
+      </if>
+      <if test="dangerTaskName != null">
+        DangerTaskName,
+      </if>
+      <if test="applicant != null">
+        Applicant,
+      </if>
+      <if test="startTime != null">
+        StartTime,
+      </if>
+      <if test="endTime != null">
+        EndTime,
+      </if>
+      <if test="fileName != null">
+        FileName,
+      </if>
+      <if test="state != null">
+        State,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="dangerTaskId != null">
+        #{dangerTaskId,jdbcType=INTEGER},
+      </if>
+      <if test="dangerTaskName != null">
+        #{dangerTaskName,jdbcType=VARCHAR},
+      </if>
+      <if test="applicant != null">
+        #{applicant,jdbcType=VARCHAR},
+      </if>
+      <if test="startTime != null">
+        #{startTime,jdbcType=VARCHAR},
+      </if>
+      <if test="endTime != null">
+        #{endTime,jdbcType=VARCHAR},
+      </if>
+      <if test="fileName != null">
+        #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=INTEGER},
+      </if>
+    </trim>
+    select SCOPE_IDENTITY()
+  </select>
+
+
+
   <select id="selectByBusinessKey" resultMap="BaseResultMap" parameterType="INTEGER" >
     select *
     from application

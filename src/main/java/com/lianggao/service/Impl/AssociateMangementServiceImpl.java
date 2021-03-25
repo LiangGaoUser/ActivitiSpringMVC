@@ -1,5 +1,6 @@
 package com.lianggao.service.Impl;
 
+import cn.jpush.api.push.PushResult;
 import com.lianggao.bean.Application;
 import com.lianggao.bean.ApplicationInstance;
 import com.lianggao.bean.UserInfo;
@@ -7,6 +8,10 @@ import com.lianggao.dao.ActivitiMapper;
 import com.lianggao.dao.ApplicationMapper;
 import com.lianggao.dao.UserInfoMapper;
 import com.lianggao.service.AssociateMangementService;
+import com.lianggao.utils.DBOperator;
+import com.lianggao.utils.DBUtils;
+import com.lianggao.utils.DBo;
+import com.lianggao.utils.JiguangPush;
 import org.activiti.bpmn.model.*;
 import org.activiti.bpmn.model.Process;
 import org.activiti.engine.ProcessEngine;
@@ -24,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -968,4 +974,456 @@ public class AssociateMangementServiceImpl implements AssociateMangementService 
             return true;
         }
     }
+
+
+
+
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+    //获取危险作业类型
+    public Map<String,Object> getCategory() {
+        try{
+            DBo dbo =new DBo();
+            String sql = "select * from datadictionary_t where DDCategoryNum='CompanyDangerTask'";
+            Map<String, Object> dataMap = new HashMap<String, Object>();
+            dataMap.put("CompanyDangerTask",dbo.executeQuery(sql));
+            sql="select * from datadictionary_t where DDCategoryNum='WorkShopDangerTask'";
+            dataMap.put("WorkShopDangerTask",dbo.executeQuery(sql));
+            return dataMap;
+        }catch(Exception e){
+            return null;
+        }
+    }
+    //
+    public Map[] getAlltaskListInfo(String conditions, int pageindex, String username, String UserInstitution) throws SQLException {
+        if (conditions.equals("")) {
+            DBOperator dbOperator = new DBOperator("");
+            return dbOperator.getApplyList(pageindex, "0", UserInstitution);
+        } else {
+            if (conditions.contains("TaskInstitution")) {
+                DBOperator dbOperator = new DBOperator("");
+                String sqlQuery = "select row_number() over(order by TaskID desc) as rn, * from DangerTask_View where " + conditions + "";
+                return dbOperator.getQueryResult(sqlQuery, pageindex, 10, "");
+            } else {
+
+                String sql = "select InstitutionCategoryNum from institution_t where institutionNum='" + UserInstitution + "'";
+                List<Map<String, Object>> list = DBUtils.query(sql);
+                String InstitutionCategoryNum = list.get(0).get("InstitutionCategoryNum").toString();
+                if (InstitutionCategoryNum.equals("3")) {
+                    DBOperator dbOperator = new DBOperator("");
+                    String sqlQuery = "select row_number() over(order by TaskID desc) as rn, * from DangerTask_View where " + conditions + " and (institutionCategoryNum='3' or institutionCategoryNum='4' or institutionCategoryNum='5')";
+                    return dbOperator.getQueryResult(sqlQuery, pageindex, 10, "");
+
+                } else if (InstitutionCategoryNum.equals("4")) {
+                    DBOperator dbOperator = new DBOperator("");
+                    String sqlQuery = "select row_number() over(order by TaskID desc) as rn, * from DangerTask_View where " + conditions + " and (TaskInstitution='" + UserInstitution + "' or (institutionCategoryNum='5' and InstitutionPrefix='" + UserInstitution + "'))";
+                    return dbOperator.getQueryResult(sqlQuery, pageindex, 10, "");
+
+                } else if (InstitutionCategoryNum.equals("5")) {
+                    DBOperator dbOperator = new DBOperator("");
+                    String sqlQuery = "select row_number() over(order by TaskID desc) as rn, * from DangerTask_View where " + conditions + " and TaskInstitution='" + UserInstitution + "'";
+                    return dbOperator.getQueryResult(sqlQuery, pageindex, 10, "");
+                } else {
+                    DBOperator dbOperator = new DBOperator("");
+                    String sqlQuery = "select row_number() over(order by TaskID desc) as rn, * from DangerTask_View where " + conditions + " and (institutionCategoryNum='3' or institutionCategoryNum='4' or institutionCategoryNum='5')";
+                    return dbOperator.getQueryResult(sqlQuery, pageindex, 10, "");
+                }
+            }
+
+        }
+    }
+
+    public Map[] getAlltaskList(String conditions, String username, String UserInstitution) throws SQLException {
+        if (conditions.equals("")) {
+            DBOperator dbOperator = new DBOperator("");
+            return dbOperator.getAllApplyList("0", UserInstitution);
+        } else {
+            if (conditions.contains("TaskInstitution")) {
+                DBOperator dbOperator = new DBOperator("");
+                String sqlQuery = "select row_number() over(order by TaskID desc) as rn, * from DangerTask_View where " + conditions + "";
+                return dbOperator.executeQuery(sqlQuery);
+            } else {
+
+                String sql = "select InstitutionCategoryNum from institution_t where institutionNum='" + UserInstitution + "'";
+                List<Map<String, Object>> list = DBUtils.query(sql);
+                String InstitutionCategoryNum = list.get(0).get("InstitutionCategoryNum").toString();
+                if (InstitutionCategoryNum.equals("3")) {
+                    DBOperator dbOperator = new DBOperator("");
+                    String sqlQuery = "select row_number() over(order by TaskID desc) as rn, * from DangerTask_View where " + conditions + " and (institutionCategoryNum='3' or institutionCategoryNum='4' or institutionCategoryNum='5')";
+                    return dbOperator.executeQuery(sqlQuery);
+                } else if (InstitutionCategoryNum.equals("4")) {
+                    DBOperator dbOperator = new DBOperator("");
+                    String sqlQuery = "select row_number() over(order by TaskID desc) as rn, * from DangerTask_View where " + conditions + " and (TaskInstitution='" + UserInstitution + "' or (institutionCategoryNum='5' and InstitutionPrefix='" + UserInstitution + "'))";
+                    return dbOperator.executeQuery(sqlQuery);
+                } else if (InstitutionCategoryNum.equals("5")) {
+                    DBOperator dbOperator = new DBOperator("");
+                    String sqlQuery = "select row_number() over(order by TaskID desc) as rn, * from DangerTask_View where " + conditions + " and TaskInstitution='" + UserInstitution + "'";
+                    return dbOperator.executeQuery(sqlQuery);
+                } else {
+                    DBOperator dbOperator = new DBOperator("");
+                    String sqlQuery = "select row_number() over(order by TaskID desc) as rn, * from DangerTask_View where " + conditions + " and (institutionCategoryNum='3' or institutionCategoryNum='4' or institutionCategoryNum='5')";
+                    return dbOperator.executeQuery(sqlQuery);
+                }
+            }
+
+        }
+    }
+
+    //添加申请任务
+    public int insertApplicationTask(String ApplicantNum, String TaskInstitution, String ApplyingTime, String StartTime, String EndTime, String DangerTaskName, String Category, String Archived, String uploadfilename, String ApproverList,String DangerTaskLevel,String DangerTaskNum) {
+        String sql = "insert into DangerTaskApplicationTable_T(DangerTaskNum,DangerTaskName,DangerTaskLevel,Category,Applicant,TaskInstitution,ApplyingTime,StartTime,EndTime,UploadFileName,State,Archived,ApproverList) values('"+DangerTaskNum+"','" + DangerTaskName + "','"+DangerTaskLevel+"','" + Category + "','" + ApplicantNum + "','" + TaskInstitution + "','" + ApplyingTime + "','" + StartTime + "','" + EndTime + "','" + uploadfilename + "','0','" + Archived + "','" + ApproverList + "')";
+        DBOperator db = new DBOperator(sql);
+        return db.executeUpdate();
+    }
+
+    //获取申请任务的详细信息
+    public Map[] getTaskInfo(String taskID) {
+        String sql = "select * from DangerTask_View where TaskID=" + taskID + "";
+        DBOperator db = new DBOperator(sql);
+        return db.executeQuery();
+    }
+    //删除前——获取待删除任务的详细信息
+    public List<Map<String,Object>> getTaskList(String tasklist) throws Exception {
+        String sql = "select * from DangerTaskApplicationTable_T where TaskID in (" + tasklist + ")";
+//        DBOperator db = new DBOperator(sql);
+        DBo dbo = new DBo();
+        return dbo.executeQuery(sql);
+    }
+
+    public List<Map<String,Object>> getApplicant(String tasklist) throws Exception {
+        String sql = "select distinct Applicant from DangerTaskApplicationTable_T where TaskID in (" + tasklist + ")";
+        DBo dbo = new DBo();
+        return dbo.executeQuery(sql);
+    }
+
+    //添加申请任务2
+    public int insertApplicationTask2(String ApplicantNum, String TaskInstitution, String ApplyingTime, String StartTime, String EndTime, String DangerTaskName, String Category, String Archived, String uploadfilename, String ApproverList,String DangerTaskLevel,String DangerTaskNum) {
+        String sql = "insert into DangerTaskApplicationTable_T(DangerTaskNum,DangerTaskName,DangerTaskLevel,Category,Applicant,TaskInstitution,ApplyingTime,StartTime,EndTime,UploadFileName,State,Archived,ApproverList) values('"+DangerTaskNum+"','" + DangerTaskName + "','"+DangerTaskLevel+"','" + Category + "','" + ApplicantNum + "','" + TaskInstitution + "','" + ApplyingTime + "','" + StartTime + "','" + EndTime + "','" + uploadfilename + "','1','" + Archived + "','" + ApproverList + "')";
+        DBOperator db = new DBOperator(sql);
+        return db.executeUpdate();
+    }
+    //添加——提交申请任务
+    public int Add_submitApplicantTask(String ApplicantNum, String ApproverList, String TaskID) {
+        try {
+            String sql = "insert into DangerTaskApprovalTable_T (TaskID,SubmitterID,ApproveInstitution,ApproveSuggestion,ApproveResult,ApproveName,ApproveSignature,ApproveTime,Finished) values ('" + TaskID + "','" + ApplicantNum + "','" + ApproverList.split(",")[0] + "','','','" + ApproverList.split(",")[0] + "','','1970-01-01','0')";
+
+            return DBUtils.update(sql);
+        } catch (Exception e) {
+            //throw e;
+            return 0;
+        }
+    }
+    //修改——提交申请任务
+    public int Edit_submitApplicantTask(String ApplicantNum, String TaskInstitution, String ApplyingTime, String StartTime, String EndTime, String DangerTaskName, String Category, String Archived, String uploadfilename, String State, String ApproverList, String TaskID,String DangerTaskLevel,String DangerTaskNum) {
+        try {
+            String sql;
+            if (State.equals("0"))    //第一次提交
+            {
+                sql = "update DangerTaskApplicationTable_T set DangerTaskLevel = '"+DangerTaskLevel+"', DangerTaskNum = '"+DangerTaskNum+"',DangerTaskName='" + DangerTaskName + "',Category='" + Category + "',Applicant='" + ApplicantNum + "',TaskInstitution='" + TaskInstitution + "',ApplyingTime='" + ApplyingTime + "',StartTime='" + StartTime + "',EndTime='" + EndTime + "',UploadFileName='" + uploadfilename + "',State='1',Archived='" + Archived + "',ApproverList='" + ApproverList + "' where TaskID='" + TaskID + "';" +
+                        "insert into DangerTaskApprovalTable_T (TaskID,SubmitterID,ApproveInstitution,ApproveSuggestion,ApproveResult,ApproveName,ApproveSignature,ApproveTime,Finished) values ('" + TaskID + "','" + ApplicantNum + "','" + ApproverList.split(",")[0] + "','','','" + ApproverList.split(",")[0] + "','','1970-01-01','0')";
+
+            } else {                   //被退回的重新提交  State=4
+                sql = "update DangerTaskApplicationTable_T set DangerTaskLevel = '"+DangerTaskLevel+"', DangerTaskNum = '"+DangerTaskNum+"',DangerTaskName='" + DangerTaskName + "',Category='" + Category + "',Applicant='" + ApplicantNum + "',TaskInstitution='" + TaskInstitution + "',ApplyingTime='" + ApplyingTime + "',StartTime='" + StartTime + "',EndTime='" + EndTime + "',UploadFileName='" + uploadfilename + "',State='1',Archived='" + Archived + "',ApproverList='" + ApproverList + "' where TaskID='" + TaskID + "';" +
+                        "delete from DangerTaskApprovalTable_T where TaskID='" + TaskID + "';" +
+                        "insert into DangerTaskApprovalTable_T (TaskID,SubmitterID,ApproveInstitution,ApproveSuggestion,ApproveResult,ApproveName,ApproveSignature,ApproveTime,Finished) values ('" + TaskID + "','" + ApplicantNum + "','" + ApproverList.split(",")[0] + "','','','" + ApproverList.split(",")[0] + "','','1970-01-01','0');";
+
+            }
+
+            return DBUtils.update(sql);
+        } catch (Exception e) {
+            //throw e;
+            return 0;
+        }
+    }
+    //修改——保存申请任务
+    public int updateApplicationTask(String ApplicantNum, String TaskInstitution, String ApplyingTime, String StartTime, String EndTime, String DangerTaskName, String Category, String Archived, String uploadfilename, String State, String ApproverList, String TaskID,String DangerTaskLevel,String DangerTaskNum) throws Exception {
+        String sql = "update DangerTaskApplicationTable_T set DangerTaskLevel = '"+DangerTaskLevel+"', DangerTaskNum = '"+DangerTaskNum+"',DangerTaskName='" + DangerTaskName + "',Category='" + Category + "',Applicant='" + ApplicantNum + "',TaskInstitution='" + TaskInstitution + "',ApplyingTime='" + ApplyingTime + "',StartTime='" + StartTime + "',EndTime='" + EndTime + "',UploadFileName='" + uploadfilename + "',State='" + State + "',Archived='" + Archived + "',ApproverList='" + ApproverList + "' where TaskID='" + TaskID + "'";
+        DBo dbo = new DBo();
+        return dbo.executeUpdate(sql);
+    }
+
+
+
+    //////////////////////////////
+    //获得审批页面所有记录
+    //待批作业
+    public Map[] getAllApprovalListInfo(String conditions, int pageindex, String username, String UserInstitution) throws SQLException {
+
+        if (conditions.equals("")) {
+            DBOperator dbOperator = new DBOperator("");
+            String sqlQuery = "select row_number() over(order by ApprovalID desc) as rn, * from DangerApproval_View where (Finished='0' or Finished='3') and ApproveInstitution='" + username + "'";
+            return dbOperator.getQueryResult(sqlQuery, pageindex, 10, "");
+        } else {
+            DBOperator dbOperator = new DBOperator("");
+            String sqlQuery = "select row_number() over(order by ApprovalID desc) as rn, * from DangerApproval_View where (Finished='0' or Finished='3') and  ApproveInstitution='" + username + "' and " + conditions + "";
+            return dbOperator.getQueryResult(sqlQuery, pageindex, 10, "");
+        }
+    }
+    //待批作业页数
+    public Map[] getAllApprovalList(String conditions,String username) throws SQLException {
+
+        if (conditions.equals("")) {
+            DBOperator dbOperator = new DBOperator("");
+            String sqlQuery = "select row_number() over(order by ApprovalID desc) as rn, * from DangerApproval_View where (Finished='0' or Finished='3') and ApproveInstitution='" + username + "'";
+            return dbOperator.executeQuery(sqlQuery);
+        } else {
+            DBOperator dbOperator = new DBOperator("");
+            String sqlQuery = "select row_number() over(order by ApprovalID desc) as rn, * from DangerApproval_View where (Finished='0' or Finished='3') and  ApproveInstitution='" + username + "' and " + conditions + "";
+            return dbOperator.executeQuery(sqlQuery);
+        }
+    }
+    //获得审批功能界面的信息
+    public List<Map<String, Object>> getApplyInfo(String ApprovalID) throws Exception {
+        String sql = "select * from DangerTask_View where TaskID in ( select TaskID from DangerTaskApprovalTable_T where ApprovalID='" + ApprovalID + "')";
+        //DBOperator db = new DBOperator(sql);
+        DBo db = new DBo();
+        return db.executeQuery(sql);
+    }
+    //获得回退界面的信息
+    public Map[] getSubmitter(String ApprovalID) {
+        String sql = "select  SubmitterID,employee_t.EmployeeName as SubmitterName,DangerTaskApplicationTable_T.Applicant,Finished from  DangerTaskApprovalTable_T inner join employee_t on  ApprovalID='" + ApprovalID + "'  and DangerTaskApprovalTable_T.SubmitterID=employee_t.EmployeeNum inner join  DangerTaskApplicationTable_T  on DangerTaskApplicationTable_T.TaskID= DangerTaskApprovalTable_T.TaskID";
+        DBOperator db = new DBOperator(sql);
+        return db.executeQuery();
+    }
+    //审批
+    public int Approve(String ApprovalID, String TaskID, String Approver, String ApproverList, String ApprovalResult,String ApproveTime,String ApprovalFinished, String ApproveSuggestion,String ApproveSignature,String flag) {
+        try {
+            DBo db = new DBo();
+            String sql = "select Finished from DangerTaskApprovalTable_T where ApprovalID='" + ApprovalID + "'";
+            String Finished = db.getString(sql, "Finished");
+            String Applicant = db.getString("select Applicant from DangerTaskApplicationTable_T where TaskID='"+TaskID+"'","Applicant");
+
+            String ApprovalList = db.getString("select ApproverList from DangerTaskApplicationTable_T where TaskID='" + TaskID + "'", "ApproverList");
+            //已完成的人
+            String List=  db.getString("select stuff((select CONVERT(varchar, ','+ApproveInstitution) from DangerTaskApprovalTable_T where taskID= "+TaskID+"  for xml path('')),1,1,'')  as list","list")+",";
+
+            if (Finished.equals("0"))      // 第一次审批
+            {
+
+                if (ApprovalResult.equals("0"))    //不同意
+                {
+                    //ApprovalList=ApprovalList.substring(0, ApprovalList.indexOf(Approver)+Approver.length());
+                    ApprovalList=List;
+                    sql = "update DangerTaskApplicationTable_T set  State='3',ApproverList='" + ApprovalList + "' where TaskID='" + TaskID + "';" +
+                            "update DangerTaskApprovalTable_T set ApproveResult='"+ApprovalResult+"',ApproveTime='" + ApproveTime+ "',Finished='"+ApprovalFinished+"',ApproveSuggestion='"+ApproveSuggestion+"',ApproveSignature='"+ApproveSignature+"' where ApprovalID='" + ApprovalID + "';" ;
+                    Collection<String> alias = new ArrayList<>();
+                    Collection<String> tags= new ArrayList<>();
+                    alias.add( Applicant);
+                    PushResult TST= JiguangPush.push(alias,null,"您有一条危险作业申请未通过！");
+
+                    //db.executeUpdate(sql);
+                }
+                else {                           //同意
+                    if(flag.equals("true")||flag.equals("1"))     //当前审批人为审批人序列的最后一个
+                    {
+                        if(ApprovalFinished.equals("2"))       //结束
+                        {
+                            sql = "update DangerTaskApplicationTable_T set  State='2' where TaskID='" + TaskID + "';" +
+                                    "update DangerTaskApprovalTable_T set ApproveResult='"+ApprovalResult+"',ApproveTime='" + ApproveTime+ "',Finished='"+ApprovalFinished+"',ApproveSuggestion='"+ApproveSuggestion+"',ApproveSignature='"+ApproveSignature+"' where ApprovalID='" + ApprovalID + "';" ;
+                            Collection<String> alias = new ArrayList<>();
+                            Collection<String> tags= new ArrayList<>();
+                            alias.add( Applicant);
+                            PushResult TST= JiguangPush.push(alias,null,"您有一条危险作业申请已通过！");
+                        }
+                        else {                                 //未结束，并选择了下一审批部门
+                            ApprovalList+=","+ApproverList;
+                            sql = "update DangerTaskApplicationTable_T set  ApproverList='" + ApprovalList + "' where TaskID='" + TaskID + "';" +
+                                    "update DangerTaskApprovalTable_T set ApproveResult='"+ApprovalResult+"',ApproveTime='" + ApproveTime+ "',Finished='1',ApproveSuggestion='"+ApproveSuggestion+"',ApproveSignature='"+ApproveSignature+"' where ApprovalID='" + ApprovalID + "';" +
+                                    "insert into DangerTaskApprovalTable_T (TaskID,SubmitterID,ApproveInstitution,ApproveSuggestion,ApproveResult,ApproveName,ApproveSignature,ApproveTime,Finished) values ('" + TaskID + "','" + Approver + "','" + ApproverList.split(",")[0] + "','','','" + ApproverList.split(",")[0] + "','','1970-01-01','0');";
+                            Collection<String> alias = new ArrayList<>();
+                            Collection<String> tags= new ArrayList<>();
+                            alias.add( ApproverList.split(",")[0]);
+                            PushResult TST= JiguangPush.push(alias,null,"您有一条新的审批待处理！");
+                            // db.executeUpdate(sql);
+                        }
+                    }
+                    else{                       //当前审批人不是审批人序列的最后一个
+                        String[] list=ApprovalList.split(",");
+                        String nextApprover="";
+                        for(int i=0;i<list.length;i++)
+                        {
+                            if(list[i].equals(Approver))
+                            {
+                                nextApprover=list[i+1];
+                                // break;
+                            }
+                        }
+                        String SubmitterID=db.getString("select SubmitterID from DangerTaskApprovalTable_T where ApprovalID='" + ApprovalID + "'","SubmitterID");
+                        sql = "update DangerTaskApprovalTable_T set ApproveResult='"+ApprovalResult+"',ApproveTime='" + ApproveTime+ "',Finished='1',ApproveSuggestion='"+ApproveSuggestion+"',ApproveSignature='"+ApproveSignature+"' where ApprovalID='" + ApprovalID + "';" +
+                                "insert into DangerTaskApprovalTable_T (TaskID,SubmitterID,ApproveInstitution,ApproveSuggestion,ApproveResult,ApproveName,ApproveSignature,ApproveTime,Finished) values ('" + TaskID + "','" + SubmitterID + "','" + nextApprover + "','','','" + nextApprover + "','','1970-01-01','0');";
+                        Collection<String> alias = new ArrayList<>();
+                        Collection<String> tags= new ArrayList<>();
+                        alias.add( nextApprover);
+                        PushResult TST= JiguangPush.push(alias,null,"您有一条新的审批待处理！");
+                        //db.executeUpdate(sql);
+                    }
+
+                }
+            } else {             //    被退回后再次审批  Finished=3
+                ApprovalList=ApprovalList.substring(0, ApprovalList.lastIndexOf(Approver)+Approver.length());
+                if (ApprovalResult.equals("0"))    //不同意
+                {
+                    //ApprovalList.substring(0, ApprovalList.indexOf(Approver));
+                    sql = "update DangerTaskApplicationTable_T set  State='3',ApproverList='" + ApprovalList + "' where TaskID='" + TaskID + "';" +
+                            "update DangerTaskApprovalTable_T set ApproveResult='"+ApprovalResult+"',ApproveTime='" + ApproveTime+ "',Finished='"+ApprovalFinished+"',ApproveSuggestion='"+ApproveSuggestion+"',ApproveSignature='"+ApproveSignature+"' where ApprovalID='" + ApprovalID + "';" +
+                            "delete from DangerTaskApprovalTable_T where TaskID ='"+TaskID+"' and SubmitterID='" + Approver + "'";
+                    Collection<String> alias = new ArrayList<>();
+                    Collection<String> tags= new ArrayList<>();
+                    alias.add( Applicant);
+                    PushResult TST= JiguangPush.push(alias,null,"您有一条危险作业申请未通过！");
+                }
+                else {                           //同意
+                    if(ApprovalFinished.equals("2"))       //结束
+                    {
+                        //ApprovalList.substring(0, ApprovalList.indexOf(Approver));
+                        sql = "update DangerTaskApplicationTable_T set  State='2',ApproverList='" + ApprovalList + "' where TaskID='" + TaskID + "';" +
+                                "update DangerTaskApprovalTable_T set ApproveResult='"+ApprovalResult+"',ApproveTime='" + ApproveTime+ "',Finished='"+ApprovalFinished+"',ApproveSuggestion='"+ApproveSuggestion+"',ApproveSignature='"+ApproveSignature+"' where ApprovalID='" + ApprovalID + "';" +
+                                "delete from DangerTaskApprovalTable_T where TaskID ='"+TaskID+"' and SubmitterID='" + Approver + "'";
+                        //db.executeUpdate(sql);
+                        Collection<String> alias = new ArrayList<>();
+                        Collection<String> tags= new ArrayList<>();
+                        alias.add( Applicant);
+                        PushResult TST= JiguangPush.push(alias,null,"您有一条危险作业申请已通过！");
+                    }
+                    else {                                 //未结束，并选择了下一审批部门
+                        //ApprovalList.substring(0, ApprovalList.indexOf(Approver));
+                        ApprovalList+=","+ApproverList;
+                        sql = "update DangerTaskApplicationTable_T set  ApproverList='" + ApprovalList + "' where TaskID='" + TaskID + "';" +
+                                "update DangerTaskApprovalTable_T set ApproveResult='"+ApprovalResult+"',ApproveTime='" + ApproveTime+ "',Finished='1',ApproveSuggestion='"+ApproveSuggestion+"',ApproveSignature='"+ApproveSignature+"' where ApprovalID='" + ApprovalID + "';" +
+                                "delete from DangerTaskApprovalTable_T where TaskID ='"+TaskID+"' and SubmitterID='" + Approver + "'"+
+                                "insert into DangerTaskApprovalTable_T (TaskID,SubmitterID,ApproveInstitution,ApproveSuggestion,ApproveResult,ApproveName,ApproveSignature,ApproveTime,Finished) values ('" + TaskID + "','" + Approver + "','" + ApproverList.split(",")[0] + "','','','" + ApproverList.split(",")[0] + "','','1970-01-01','0');";
+                        Collection<String> alias = new ArrayList<>();
+                        Collection<String> tags= new ArrayList<>();
+                        alias.add( ApproverList.split(",")[0]);
+                        PushResult TST= JiguangPush.push(alias,null,"您有一条新的审批待处理！");
+                    }
+
+                }
+            }
+
+            return db.executeUpdate(sql);
+        } catch (Exception e) {
+            //throw e;
+            return 0;
+        }
+    }
+    //获得转发界面的信息
+    public Map[] getrelayPeopleList(String InstitutionNum, String usernum) throws Exception {
+        String sql = "select e.EmployeeNum,RTRIM(e.EmployeeName)+'-'+RTRIM(EmployeeID) EmployeeName from Employee_t as e\n" +
+                "inner join userinfo_t \n" +
+                "on InstitutionNum='"+InstitutionNum+"' and e.EmployeeNum<>'"+usernum+"' and OutCompanyOrNot<>'1' and IsRetire<>'1' and e.EmployeeNum=userinfo_t.EmployeeNum";
+        DBOperator db = new DBOperator(sql);
+        return db.executeQuery();
+    }
+    //转发
+    public int replayApplication(String[] ApprovalIDList, String username, String relayPeople, String ApproveSuggestion) {
+        try {
+            if(relayPeople.endsWith(",")){
+                relayPeople=relayPeople.substring(0,relayPeople.length()-1);
+            }
+            DBo db = new DBo();
+            SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String sql="";
+            int count=0;
+            for(int i = 0; i<ApprovalIDList.length;i++)
+            {
+                String ApprovalID = ApprovalIDList[i];
+                String TaskID = db.getString("select TaskID from DangerTaskApprovalTable_T where ApprovalID='" + ApprovalID + "'", "TaskID");
+                String SubmitterID = db.getString("select SubmitterID from DangerTaskApprovalTable_T where ApprovalID='" + ApprovalID + "'", "SubmitterID");
+                String Finished = db.getString("select Finished from DangerTaskApprovalTable_T where ApprovalID='" + ApprovalID + "'", "Finished");
+                String ApproverList = db.getString("select ApproverList from DangerTaskApplicationTable_T where TaskID='" + TaskID + "'", "ApproverList");
+
+                if (Finished.equals("0"))      // 待批时转发
+                {
+                    //已完成的人
+                    String list=  db.getString("select stuff((select CONVERT(varchar, ','+ApproveInstitution) from DangerTaskApprovalTable_T where taskID= "+TaskID+"  for xml path('')),1,1,'')  as list","list");
+                    System.out.println(list);
+                    if(!ApproverList.substring(ApproverList.length()-1,ApproverList.length()).equals(","))
+                    {
+                        if(list.endsWith(",")){
+                            list = list.substring(0,list.length()-1);
+                        }
+                        System.out.println(list);
+                        if(ApproverList.replace(list,"").equals(""))
+                        {System.out.println(relayPeople);
+                            System.out.println(ApproverList);
+                            ApproverList=list+","+relayPeople;
+                            System.out.println(ApproverList);
+                        }
+                        else {
+                            System.out.println(relayPeople);
+                            System.out.println(ApproverList);
+                            ApproverList=list+","+relayPeople+ApproverList.replace(list,"");
+                            System.out.println(ApproverList);
+                        }
+                    }
+                    else {
+                        if(!list.endsWith(",")){
+                            list = list+",";
+                        }
+                        ApproverList=list+relayPeople+ApproverList.replace(list,"");
+                    }
+//                    ApproverList=ApproverList.substring(0, ApproverList.indexOf(username)+username.length())+","+relayPeople+ApproverList.substring(ApproverList.indexOf(username)+username.length(),ApproverList.length());
+                    sql = "update DangerTaskApplicationTable_T set ApproverList='" + ApproverList + "' where TaskID='" + TaskID + "';" +
+                            "update DangerTaskApprovalTable_T set Finished='5',ApproveSuggestion='"+ApproveSuggestion+"',ApproveTime='" + dateformat.format(new Date()) + "' where ApprovalID='" + ApprovalID + "';" +
+                            "insert into DangerTaskApprovalTable_T (TaskID,SubmitterID,ApproveInstitution,ApproveSuggestion,ApproveResult,ApproveName,ApproveSignature,ApproveTime,Finished) values ('" + TaskID + "','" + SubmitterID + "','" + relayPeople + "','','','" + relayPeople + "','','1970-01-01','0');";
+                } else {             //    被退回时转发  Finished=3
+                    ApproverList=ApproverList.substring(0, ApproverList.lastIndexOf(username)+username.length());
+                    ApproverList=ApproverList+","+relayPeople;
+                    sql = "update DangerTaskApplicationTable_T set ApproverList='" + ApproverList + "' where TaskID='" + TaskID + "';" +
+                            "delete from DangerTaskApprovalTable_T where TaskID='" + TaskID + "' and SubmitterID='" + username + "';" +
+                            "update DangerTaskApprovalTable_T set Finished='5',ApproveSuggestion='"+ApproveSuggestion+"',ApproveTime='" + dateformat.format(new Date()) + "' where ApprovalID='" + ApprovalID + "';" +
+                            "insert into DangerTaskApprovalTable_T (TaskID,SubmitterID,ApproveInstitution,ApproveSuggestion,ApproveResult,ApproveName,ApproveSignature,ApproveTime,Finished) values ('" + TaskID + "','" + SubmitterID + "','" + relayPeople + "','','','" + relayPeople + "','','1970-01-01','0');";
+
+                }
+                count+=db.executeUpdate(sql);
+            }
+
+            return count==ApprovalIDList.length?1:0;
+        } catch (Exception e) {
+            //throw e;
+            return 0;
+        }
+    }
+    //回退
+    public int returnApplication(String ApprovalID, String SubmitterID, String Applicant, String ApproveSuggestion, String Finished) {
+        try {
+            DBo db = new DBo();
+            //String sql = "";
+            String sql = "select Finished from DangerTaskApprovalTable_T where ApprovalID='" + ApprovalID + "'";
+            Finished = db.getString(sql, "Finished");
+
+            SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            if (Finished.equals("0"))      // 第一次退回
+            {
+                if (SubmitterID.equals(Applicant))   //退回给申请人
+                {
+                    sql = "update DangerTaskApprovalTable_T set Finished='4' , ApproveSuggestion='" + ApproveSuggestion + "',ApproveTime='" + dateformat.format(new Date()) + "' where ApprovalID='" + ApprovalID + "' ;\n" +
+                            "update DangerTaskApplicationTable_T set State='4' where TaskID in (select TaskID from DangerTaskApprovalTable_T where ApprovalID='" + ApprovalID + "')";
+                } else {                              //退回给提交人
+                    sql = "update DangerTaskApprovalTable_T set Finished='4' , ApproveSuggestion='" + ApproveSuggestion + "',ApproveTime='" + dateformat.format(new Date()) + "' where ApprovalID='" + ApprovalID + "' ;\n" +
+                            "update DangerTaskApprovalTable_T set Finished='3' where TaskID in (select TaskID from DangerTaskApprovalTable_T where ApprovalID='" + ApprovalID + "') and ApproveInstitution='" + SubmitterID + "'";
+                }
+            } else {             //    退回的退回  Finished=3
+                if (SubmitterID.equals(Applicant))   //退回给申请人
+                {
+                    sql = "update DangerTaskApprovalTable_T set Finished='4' , ApproveSuggestion='" + ApproveSuggestion + "',ApproveTime='" + dateformat.format(new Date()) + "' where ApprovalID='" + ApprovalID + "' ;\n" +
+                            "update DangerTaskApplicationTable_T set State='4' where TaskID in (select TaskID from DangerTaskApprovalTable_T where ApprovalID='" + ApprovalID + "');" +
+                            "delete from DangerTaskApprovalTable_T where TaskID in (select TaskID from DangerTaskApprovalTable_T where ApprovalID='" + ApprovalID + "') and SubmitterID='" + SubmitterID + "'";
+                } else {                              //退回给提交人
+                    sql = "update DangerTaskApprovalTable_T set Finished='4' , ApproveSuggestion='" + ApproveSuggestion + "',ApproveTime='" + dateformat.format(new Date()) + "' where ApprovalID='" + ApprovalID + "' ;\n" +
+                            "update DangerTaskApprovalTable_T set Finished='3' where TaskID in (select TaskID from DangerTaskApprovalTable_T where ApprovalID='" + ApprovalID + "') and ApproveInstitution='" + SubmitterID + "';" +
+                            "delete from DangerTaskApprovalTable_T where TaskID in (select TaskID from DangerTaskApprovalTable_T where ApprovalID='" + ApprovalID + "') and SubmitterID='" + SubmitterID + "'";
+                }
+            }
+
+            //DBOperator db = new DBOperator(sql);
+            return db.executeUpdate(sql);
+        } catch (Exception e) {
+            //throw e;
+            return 0;
+        }
+    }
+
+
 }
